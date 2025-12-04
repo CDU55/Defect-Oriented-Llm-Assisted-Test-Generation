@@ -1,6 +1,6 @@
 # Defect-Oriented-Llm-Assisted-Test-Generation
 
-This repository contains the artifacts for an empirical study on how well large language models (LLMs) generate Solidity unit tests from test templates. It includes input contracts, test templates, generated outputs, and experimental results.
+This repository contains the artifacts for our empirical study regarding the potential of Large Language Models (LLMs) to generate valid Solidity Forge/Kontrol tests from test templates.
 
 ## Repository Structure
 
