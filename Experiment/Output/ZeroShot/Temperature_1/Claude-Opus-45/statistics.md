@@ -1,0 +1,14 @@
+# Statistics — Claude-Opus-45
+
+**Prompting Technique:** ZeroShot  
+**Temperature:** Temperature_1  
+
+| Defect Category | Test File | Generation Time | Input Tokens | Output Tokens | Reasoning Tokens |
+|---|---|---|---|---|---|
+| Assert, Require, or Revert Violation - Always-Incorrect Control Flow | Validator.t.sol | 22,24s | 1994 | 1032 | 779 |
+| Bad Random Number Generation | QuestGame.t.sol | 36,58s | 2262 | 2338 | 998 |
+| Division By Zero | Calculator.t.sol | 15,03s | 1987 | 589 | 605 |
+| Gas Costly Pattern - Complex Fallback | Crowdfund.t.sol | 18,87s | 2467 | 939 | 627 |
+| Reentrancy | MiniBank.t.sol | 32,93s | 3383 | 1454 | 1509 |
+| Unrestricted Access to a Critical Method | SalaryManager.t.sol | 14,54s | 2650 | 567 | 427 |
+| **Average** | **—** | **23.36s** | **2457** | **1153** | **824** |

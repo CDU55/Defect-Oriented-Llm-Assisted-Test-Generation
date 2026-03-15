@@ -1,0 +1,14 @@
+# Average Statistics per Defect Category — Deepseek-Reasoner
+
+**Prompting Technique:** ZeroShot  
+**Temperature:** Temperature_1  
+
+| Defect Category | Files | Avg Generation Time | Avg Input Tokens | Avg Output Tokens | Avg Reasoning Tokens |
+|---|---|---|---|---|---|
+| Assert, Require, or Revert Violation - Always-Incorrect Control Flow | 1 | 28.70s | 1869 | 158 | 1062 |
+| Bad Random Number Generation | 1 | 37.41s | 2102 | 306 | 1330 |
+| Division By Zero | 1 | 70.45s | 1840 | 317 | 2770 |
+| Gas Costly Pattern - Complex Fallback | 1 | 51.39s | 2321 | 254 | 1857 |
+| Reentrancy | 1 | 64.97s | 3159 | 443 | 2273 |
+| Unrestricted Access to a Critical Method | 1 | 88.31s | 2515 | 282 | 3510 |
+| **Overall Average** | **6** | **56.87s** | **2301** | **293** | **2134** |

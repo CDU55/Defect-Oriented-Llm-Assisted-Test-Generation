@@ -1,0 +1,14 @@
+# Statistics — GPT-51
+
+**Prompting Technique:** MultiShot  
+**Temperature:** Temperature_1  
+
+| Defect Category | Test File | Generation Time | Input Tokens | Output Tokens | Reasoning Tokens |
+|---|---|---|---|---|---|
+| Assert, Require, or Revert Violation - Always-Incorrect Control Flow | Validator.t.sol | 9,60s | 1586 | 154 | 1327 |
+| Bad Random Number Generation | QuestGame.t.sol | 24,58s | 1959 | 395 | 2320 |
+| Division By Zero | Calculator.t.sol | 12,81s | 1521 | 413 | 1752 |
+| Gas Costly Pattern - Complex Fallback | Crowdfund.t.sol | 8,05s | 1847 | 259 | 1057 |
+| Reentrancy | MiniBank.t.sol | 23,77s | 2711 | 688 | 3283 |
+| Unrestricted Access to a Critical Method | SalaryManager.t.sol | 11,27s | 2067 | 272 | 1517 |
+| **Average** | **—** | **15.01s** | **1948** | **364** | **1876** |

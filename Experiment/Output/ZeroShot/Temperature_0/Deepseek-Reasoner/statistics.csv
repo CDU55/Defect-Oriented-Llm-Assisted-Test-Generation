@@ -1,0 +1,8 @@
+Defect Category,Test File,Generation Time,Input Tokens,Output Tokens,Reasoning Tokens
+"Assert, Require, or Revert Violation - Always-Incorrect Control Flow",Validator.t.sol,"25,94s",1869,159,935
+Bad Random Number Generation,QuestGame.t.sol,"83,08s",2102,340,3250
+Division By Zero,Calculator.t.sol,"67,83s",1840,340,2619
+Gas Costly Pattern - Complex Fallback,Crowdfund.t.sol,"55,14s",2321,254,2183
+Reentrancy,MiniBank.t.sol,"86,68s",3159,450,3439
+Unrestricted Access to a Critical Method,SalaryManager.t.sol,"59,63s",2515,275,2344
+Average,—,63.05s,2301,303,2462

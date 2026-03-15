@@ -1,0 +1,14 @@
+# Average Statistics per Defect Category — Claude-Opus-45
+
+**Prompting Technique:** MultiShot  
+**Temperature:** Temperature_1  
+
+| Defect Category | Files | Avg Generation Time | Avg Input Tokens | Avg Output Tokens | Avg Reasoning Tokens |
+|---|---|---|---|---|---|
+| Assert, Require, or Revert Violation - Always-Incorrect Control Flow | 1 | 17.97s | 2144 | 947 | 519 |
+| Bad Random Number Generation | 1 | 51.53s | 2664 | 1078 | 814 |
+| Division By Zero | 1 | 14.74s | 2070 | 709 | 353 |
+| Gas Costly Pattern - Complex Fallback | 1 | 25.83s | 2513 | 1326 | 746 |
+| Reentrancy | 1 | 32.39s | 3623 | 1358 | 1137 |
+| Unrestricted Access to a Critical Method | 1 | 28.76s | 2747 | 1403 | 815 |
+| **Overall Average** | **6** | **28.54s** | **2627** | **1137** | **731** |

@@ -1,0 +1,14 @@
+# Average Statistics per Defect Category — Gemini-3-Pro
+
+**Prompting Technique:** MultiShot  
+**Temperature:** Temperature_0  
+
+| Defect Category | Files | Avg Generation Time | Avg Input Tokens | Avg Output Tokens | Avg Reasoning Tokens |
+|---|---|---|---|---|---|
+| Assert, Require, or Revert Violation - Always-Incorrect Control Flow | 1 | 25.96s | 1957 | 661 | 2615 |
+| Bad Random Number Generation | 1 | 25.27s | 2495 | 858 | 1959 |
+| Division By Zero | 1 | 62.96s | 1883 | 960 | 5590 |
+| Gas Costly Pattern - Complex Fallback | 1 | 39.88s | 2344 | 870 | 3514 |
+| Reentrancy | 1 | 30.73s | 3344 | 1293 | 2294 |
+| Unrestricted Access to a Critical Method | 1 | 25.25s | 2580 | 907 | 1779 |
+| **Overall Average** | **6** | **35.01s** | **2434** | **925** | **2958** |

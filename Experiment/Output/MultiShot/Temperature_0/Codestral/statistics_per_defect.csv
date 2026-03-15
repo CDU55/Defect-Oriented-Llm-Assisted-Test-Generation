@@ -1,0 +1,8 @@
+Defect Category,Files,Avg Generation Time,Avg Input Tokens,Avg Output Tokens,Avg Reasoning Tokens
+"Assert, Require, or Revert Violation - Always-Incorrect Control Flow",1,0.84s,2501,148,N/A
+Bad Random Number Generation,1,1.51s,3026,310,N/A
+Division By Zero,1,1.79s,2444,241,N/A
+Gas Costly Pattern - Complex Fallback,1,3.33s,2881,283,N/A
+Reentrancy,1,3.29s,4394,468,N/A
+Unrestricted Access to a Critical Method,1,1.09s,3130,237,N/A
+Overall Average,6,1.97s,3063,281,N/A

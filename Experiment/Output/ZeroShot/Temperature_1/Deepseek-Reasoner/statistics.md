@@ -1,0 +1,14 @@
+# Statistics — Deepseek-Reasoner
+
+**Prompting Technique:** ZeroShot  
+**Temperature:** Temperature_1  
+
+| Defect Category | Test File | Generation Time | Input Tokens | Output Tokens | Reasoning Tokens |
+|---|---|---|---|---|---|
+| Assert, Require, or Revert Violation - Always-Incorrect Control Flow | Validator.t.sol | 28,70s | 1869 | 158 | 1062 |
+| Bad Random Number Generation | QuestGame.t.sol | 37,41s | 2102 | 306 | 1330 |
+| Division By Zero | Calculator.t.sol | 70,45s | 1840 | 317 | 2770 |
+| Gas Costly Pattern - Complex Fallback | Crowdfund.t.sol | 51,39s | 2321 | 254 | 1857 |
+| Reentrancy | MiniBank.t.sol | 64,97s | 3159 | 443 | 2273 |
+| Unrestricted Access to a Critical Method | SalaryManager.t.sol | 88,31s | 2515 | 282 | 3510 |
+| **Average** | **—** | **56.87s** | **2301** | **293** | **2134** |
