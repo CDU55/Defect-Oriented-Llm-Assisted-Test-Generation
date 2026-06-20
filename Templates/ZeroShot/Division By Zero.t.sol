@@ -9,8 +9,9 @@ import {console2} from "forge-std/console2.sol";
 // [Testing Goal] Identify if an external actor can influence a denominator to
 // zero without passing through a semantic guard (e.g., a require statement).
 // This identifies the Control Gap—when a denominator is computable from user
-// input or fuzzed state and lacks a "require" check, leading to potential DoS
-// on critical arithmetic.
+// input or fuzzed state and a zero value is reachable on a feasible path (i.e.,
+// no effective guard blocks it, including a present-but-buggy guard), leading to
+// potential DoS on critical arithmetic.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // [LLM_INSTRUCTION]: Name the contract 'TestDivisionByZero[ContractName]'
@@ -46,7 +47,9 @@ contract TestDivisionByZeroTemplate is Test {
         // [Setup] Constrain fuzz/symbolic inputs and configure pre-conditions.
         // ─────────────────────────────────────────────────────────────────────
 
-        // [LLM_INSTRUCTION]: Use vm.assume to constrain fuzz parameters if necessary. 
+        // [LLM_INSTRUCTION]: Inputs are left symbolic; Kontrol explores the full
+        // value domain, so no blanket range bound is needed. Add a vm.assume only
+        // to encode a genuine, contract-specific precondition. 
 
         // [LLM_INSTRUCTION]: Set up the state required to reach the vulnerable code.
 

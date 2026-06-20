@@ -107,11 +107,11 @@ contract TestAccessControlTemplate is Test {
         // ──────────────────────────────────────────────────────────────── [/Action]
 
         // ─────────────────────────────────────────────────────────────────────
-        // [Assertion] In contrast to standard positive tests, this uses
-        // vm.expectRevert() to assert that the call MUST fail. If the sensitive
-        // method executes successfully without reverting, or if the contract
-        // state (e.g., the owner variable) is modified, the access control
-        // logic is confirmed as flawed.
+        // [Assertion] Polarity inversion vs. standard positive tests: the call is
+        // expected to SUCCEED, so there is NO vm.expectRevert(). If the sensitive
+        // method executes without reverting (the primary witness), the access-control
+        // logic is confirmed flawed; if it reverts (contract protected), the test fails.
+        // An optional assertEq on the mutated state confirms the critical effect.
         // ─────────────────────────────────────────────────────────────────────
 
         // [LLM_INSTRUCTION]: TRIGGER THE SENSITIVE METHOD
@@ -121,11 +121,13 @@ contract TestAccessControlTemplate is Test {
         
         // _contractUnderTest.criticalFunction();
 
-        // [LLM_INSTRUCTION]: (Optional) ASSERT STATE CHANGE
+        // [LLM_INSTRUCTION]: (Optional) ASSERT THE CRITICAL EFFECT
         // Check for side effects to confirm the action really happened.
-        // If the sensitive method modifies state (e.g., owner, balances), assert
-        // that the change occurred, further proving the access control is flawed.
-        // Example: assertEq(_contractUnderTest.owner(), caller);
+        // Instantiate the effect predicate for the flavor of the critical method:
+        //   - ownership transfer: assertTrue(_contractUnderTest.owner() == caller);
+        //   - minting:            assertTrue(_contractUnderTest.balanceOf(caller) > preBalance);
+        //   - selfdestruct:       assertTrue(address(_contractUnderTest).code.length == 0);
+        // (Use a public getter where available; otherwise read the slot via vm.load.)
 
         // ─────────────────────────────────────────────────────────── [/Assertion]
     }

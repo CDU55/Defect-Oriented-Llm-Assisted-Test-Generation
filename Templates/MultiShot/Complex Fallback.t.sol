@@ -53,7 +53,7 @@ contract TestComplexFallbackTemplate is Test {
 
         // [LLM_INSTRUCTION]: Constrain the Fuzz/Symbolic values.
         // WARNING: Avoid Integer/Balance Overflow.
-        vm.assume(amount > 0.01 ether && amount < type(uint128).max);
+        vm.assume(amount >= 0.01 ether && amount <= type(uint128).max);
 
         // [LLM_INSTRUCTION]: FUNDING
         // A. Create and Fund a dedicated Sender address
@@ -87,34 +87,38 @@ contract TestComplexFallbackTemplate is Test {
         // ────────────────────────────────────────────────────── [/Measurement]
 
         // ─────────────────────────────────────────────────────────────────────
-        // [Action] Execute a low-level call to the victim contract to transfer
-        // currency. Capture gasleft() immediately before (state σ) and after
-        // (state σ') to compute the delta.
+        // [Action] Two-probe materialization of dGas(π) > 2300, reproducing
+        // exactly what transfer()/send() do — they forward only the 2300 stipend.
+        //   Probe 1 (stipend-bounded): gas: 0. Since value > 0, the EVM adds
+        //     exactly the 2300 stipend, so the callee receives 2300 gas. A callback
+        //     whose path costs > 2300 runs out of gas → the call returns false.
+        //   Probe 2 (unbounded): forward all gas → a well-formed payable callback
+        //     succeeds. Each probe runs against a FRESH, cold instance, so there is
+        //     no state bleed between probes.
         // ─────────────────────────────────────────────────────────────────────
-        
+
+        // Probe 1 — stipend-bounded call on the cold setUp instance.
         vm.prank(sender);
-        uint256 gasBefore = gasleft();
-        
-        // [LLM_INSTRUCTION]: Trigger the fallback/receive function.
-        // We use a low-level .call{value: amount} to send Ether.
-        // Note: We cast to 'payable' to allow sending Ether.
-        (bool success, ) = address(_contractUnderTest).call{value: amount}("");      
-        
-        uint256 gasAfter = gasleft();
+        (bool okStipend, ) = address(_contractUnderTest).call{value: amount, gas: 0}("");
+
+        // [LLM_INSTRUCTION]: Redeploy a FRESH victim so Probe 2 runs against identical
+        // cold state. Re-run the same initialization used in setUp (constructor args,
+        // expensive-mode setters, vm.deal if payable).
+        // _contractUnderTest = new ComplexFallback();
+
+        // Probe 2 — unbounded call on the fresh cold instance.
+        vm.prank(sender);
+        (bool okUnbounded, ) = address(_contractUnderTest).call{value: amount}("");
 
         // ─────────────────────────────────────────────────────────── [/Action]
 
         // ─────────────────────────────────────────────────────────────────────
-        // [Assertion] Calculate gasUsed = gasBefore - gasAfter and assert that
-        // this value remains below 2,300. If gasUsed > 2300, the contract will
-        // revert during standard transfer() or send() calls, effectively
-        // locking incoming Ether.
+        // [Assertion] dGas(π) > 2300  <=>  the unbounded call SUCCEEDS and the
+        // stipend-bounded call REVERTS. If both succeed, the callback fits within
+        // the 2300 stipend and the contract is NOT gas-locked (test fails).
         // ─────────────────────────────────────────────────────────────────────
 
-        uint256 gasUsed = gasBefore - gasAfter;
-        
-        // Verify gas usage exceeds the 2,300 stipend (vulnerability confirmed)
-        assertTrue(gasUsed >= 2300, "Gas used does not exceed 2300");
+        assertTrue(okUnbounded && !okStipend, "Callback fits within the 2300 stipend: not gas-locked");
 
         // ──────────────────────────────────────────────────── [/Assertion]
     }

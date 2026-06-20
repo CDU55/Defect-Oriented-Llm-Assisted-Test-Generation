@@ -22,7 +22,7 @@
 | GPT-51 | 6 | 4 | 3 | 6 |
 | Gemini-3-Pro | 6 | 6 | 4 | 6 |
 
-## One-Shot
+## Multi-Shot
 
 ### Temperature 0
 

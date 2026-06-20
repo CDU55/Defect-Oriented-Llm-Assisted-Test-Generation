@@ -43,6 +43,8 @@ contract TestWeakRandomnessTemplate is Test {
     //    - Found 'block.number'?    -> Add 'uint256 blockNumber'
     //    - Found 'block.prevrandao' or 'block.difficulty'? -> Add 'uint256 blockPrevrandao'
     //    - Found 'block.coinbase'?  -> Add 'address blockCoinbase'
+    //    - Found 'block.basefee'?   -> Add 'uint256 blockBaseFee'
+    //    - Found 'blockhash(...)'?  -> OUT OF SCOPE: Forge has no cheatcode to set blockhash; skip this field.
     // Example: function test_highlightPredictableRandomValue(uint256 blockTimestamp, uint256 blockNumber) public {
     function test_highlightPredictableRandomValue(/* [LLM_INSTRUCTION]: Insert inferred arguments here */) public {
         
@@ -75,6 +77,7 @@ contract TestWeakRandomnessTemplate is Test {
         // If blockNumber used    -> vm.roll(blockNumber);
         // If blockPrevrandao used -> vm.prevrandao(bytes32(blockPrevrandao));
         // If blockCoinbase used  -> vm.coinbase(blockCoinbase);
+        // If blockBaseFee used   -> vm.fee(blockBaseFee);
 
         // ───────────────────────────────────────────────────────── [/Setup]
 
@@ -101,6 +104,21 @@ contract TestWeakRandomnessTemplate is Test {
         // [LLM_INSTRUCTION]: PREDICT THE OUTCOME
         // Replicate the vulnerable logic locally inside the test.
         // Since we control the block state, we can calculate the exact result the contract *should* produce.
+        //
+        // [LLM_INSTRUCTION]: SURFACE ON-CHAIN STATE THE DRAW DEPENDS ON
+        // If the random computation also mixes in contract storage (e.g. a nonce,
+        // a player count, a seed, address(this).balance), the mirror must read those
+        // values too — the prediction is a function F(state, env), not env alone.
+        // All EVM storage is publicly readable off-chain regardless of Solidity
+        // 'private'/'internal' visibility, so surface such slots in the test:
+        //   - Public getter available?  -> read it directly.
+        //   - Private/internal slot?    -> read it with vm.load, e.g.
+        //         uint256 seed = uint256(vm.load(address(_contractUnderTest), bytes32(uint256(SLOT))));
+        //     (or use stdstore to locate the slot), then feed it into the mirror below.
+        // The same applies to any EXTERNAL-CONTRACT state the draw reads (a foreign
+        // storage slot or a view() result) and to the TRANSACTION CONTEXT it reads
+        // (msg.sender, tx.origin, msg.value, calldata): all are attacker-observable,
+        // so feed them into the mirror where the draw depends on them.
         
         // Example Logic Replicated:
         // uint256 expectedRandom = uint256(keccak256(abi.encodePacked(block.prevrandao, blockNumber, blockTimestamp)));

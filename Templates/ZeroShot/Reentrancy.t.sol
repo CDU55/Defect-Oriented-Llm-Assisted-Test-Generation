@@ -69,7 +69,8 @@ contract TestReentrancyTemplate is Test {
         // TIMING: If logic depends on time, use vm.warp(block.timestamp + 100);
         // ───────────────────────────────────────────────────────── [/Setup]
         // ─────────────────────────────────────────────────────────────────────
-        // [Action] Fund contracts using vm.deal and trigger the attack sequence.
+        // [Setup] (Arrange) Fund both parties, perform the attacker's deposit,
+        // and capture the consistency invariant at the boundary state σ.
         // ─────────────────────────────────────────────────────────────────────
 
         // [LLM_INSTRUCTION]: Fund the contracts using vm.deal.
@@ -92,20 +93,39 @@ contract TestReentrancyTemplate is Test {
         // Pass the Fuzz/Symbolic values to the setup and attack functions.
         // Note: The {value: attackVal} here draws from address(this), which is why we funded it above.
         _attacker.setupAttack{value: attackVal}(attackVal);
+
+        // [LLM_INSTRUCTION]: Capture the consistency invariant I at the boundary σ
+        // (after the deposit, before the exploit). This records C1, I(σ).
+        // Read the victim's public state to evaluate I.
+        bool initialInvariantHolds = true; // PLACEHOLDER: replace with the invariant check at σ
+
+        // [Action] (Act) Trigger the exploit. attack() calls the victim's vulnerable
+        // method, issuing the external call that yields control back to the attacker.
         _attacker.attack(attackVal);
 
         // ──────────────────────────────────────────────────────────── [/Action]
 
         // ─────────────────────────────────────────────────────────────────────
-        // [Assertion] Validate that the exploit succeeded. The exploitSucceeded
-        // flag is most commonly set when reentrancyCount > 1, but may also
-        // incorporate additional contract-specific conditions (e.g., balance
-        // drained beyond expected, state variables corrupted). This provides
-        // deterministic, trace-based verification that the intermediate state
-        // σ_i was reached and the contract's control flow was manipulated.
+        // [Assertion] (Assert) Three checks run by the test contract:
+        //  C1: the consistency invariant held at the boundary σ;
+        //  C3 & C6: re-entry occurred while the invariant was violated at σ_i
+        //           (exploitSucceeded = reentrancyCount > 1 && invariantBroken);
+        //  C7 & C8: the outer attack() call returns at the transaction boundary σ_b,
+        //           where the contract's specification is violated.
+        // (initialInvariantHolds is captured in the arrange phase above.)
         // ─────────────────────────────────────────────────────────────────────────
 
+        // C1: invariant held at σ (captured above, before the exploit).
+        assertTrue(initialInvariantHolds, "Invariant did not hold at the boundary state sigma.");
+
+        // C3 & C6: re-entry occurred while the invariant was broken at σ_i.
         assertTrue(_attacker.exploitSucceeded(), "Reentrancy attack failed: exploitSucceeded flag was not set.");
+
+        // [LLM_INSTRUCTION]: Compute invariantBrokenAtBoundary by re-evaluating the invariant I at the
+        // transaction boundary σ_b (after attack() returns); the invariant is violated iff I is false.
+        bool invariantBrokenAtBoundary = true; // PLACEHOLDER: replace with the invariant re-check at σ_b
+        // C8: invariant violated at the boundary σ_b.
+        assertTrue(invariantBrokenAtBoundary, "Invariant not violated at the boundary: contract appears protected.");
 
         // ─────────────────────────────────────────────────────── [/Assertion]
     }
@@ -123,9 +143,10 @@ contract TestReentrancyTemplate is Test {
     contract Attacker {
     // [LLM_INSTRUCTION]: Declare the victim contract variable with its specific type.
     
-    // [Setup] Dedicated state variable to track the number of re-entries.
-    uint256 public reentrancyCount;
-    bool public exploitSucceeded;
+    // [Setup] Dedicated state variables to track the exploit trace.
+    uint256 public reentrancyCount;   // number of re-entries
+    bool public invariantBroken;      // I violated at the intermediate state σ_i
+    bool public exploitSucceeded;     // reentrancyCount > 1 && invariantBroken
 
     // [LLM_INSTRUCTION]: Declare state variables to store the Fuzz/Symbolic values.
     // We must store them because 'receive()' cannot accept arguments.
@@ -144,6 +165,7 @@ contract TestReentrancyTemplate is Test {
     function setupAttack(uint256 val) public payable {
         reentrancyCount = 0;
         exploitSucceeded = false;
+        invariantBroken = false;
         
         // [LLM_INSTRUCTION]: Perform preparation steps (e.g. deposit) using the Fuzz/Symbolic value.
         // Check: If the vulnerability requires a 'deposit' first, do it here.
@@ -162,23 +184,27 @@ contract TestReentrancyTemplate is Test {
         // [LLM_INSTRUCTION]: 2. Call the vulnerable function.
         // This initiates the external call that will trigger the callback.
 
-        // [Assertion] Set exploitSucceeded based on the success condition.
-        // [LLM_INSTRUCTION]: The most common condition is reentrancyCount > 1.
-        // However, you may also include additional contract-specific checks
-        // (e.g., balance drained, state variables corrupted).
+        // [Assertion] Set exploitSucceeded conjoining the two callback-window facts:
+        // re-entry occurred (reentrancyCount > 1) AND the invariant was broken at σ_i.
+        exploitSucceeded = (reentrancyCount > 1 && invariantBroken);
     }
 
     // ──────────────────────────────────────────────────────── [/Action]
 
     // ─────────────────────────────────────────────────────────────────────────
     // [Callback Logic] Within receive()/fallback(), re-invoke the victim's
-    // vulnerable method. Increment reentrancyCount upon each successful entry
-    // to provide a trace-based proof of the exploit.
+    // vulnerable method. Increment reentrancyCount on each entry and record
+    // invariantBroken by evaluating the invariant at the intermediate state σ_i,
+    // providing a trace-based proof of the exploit.
     // ─────────────────────────────────────────────────────────────────────────
 
     receive() external payable {
         reentrancyCount++;
         if (reentrancyCount < 2) {
+            // [LLM_INSTRUCTION]: Record whether the consistency invariant I is violated at the
+            // intermediate state σ_i (the victim's method is still suspended here).
+            // Read the victim's public state to evaluate I.
+
             // [LLM_INSTRUCTION]: Re-enter the victim's vulnerable method using the stored Fuzz/Symbolic value.
         }
     }

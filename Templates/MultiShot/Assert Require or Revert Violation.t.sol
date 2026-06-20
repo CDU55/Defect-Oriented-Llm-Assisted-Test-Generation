@@ -44,7 +44,9 @@ contract TestAssertFailureTemplate is Test {
     // [LLM_INSTRUCTION]: Analyze the method being tested.
     // 1. If it accepts arguments, ADD them to this function signature to enable Fuzzing/Symbolic execution.
     // 2. If it takes no arguments, keep the signature empty.
+    // 3. GRIEFING variant: also add a fuzzed/symbolic 'address caller' to witness a universal DoS.
     // Example: function test_highlightAssertionFailure(uint256 fuzzArg) public {
+    // Example (grief): function test_highlightAssertionFailure(address caller, uint256 fuzzArg) public {
     function test_highlightAssertionFailure() public {
         
         // ─────────────────────────────────────────────────────────────────────
@@ -90,9 +92,17 @@ contract TestAssertFailureTemplate is Test {
         // valid vulnerability.
         // ─────────────────────────────────────────────────────────────────────
 
-        // This confirms that the contract reverts with Panic(0x01) (Assert Failed).
-        // This proves the existence of a contradiction or invalid state.
+        // [LLM_INSTRUCTION]: Pick the assertion by defect branch:
+        //  - PANIC branch (broken internal invariant / failed `assert` -> Panic(0x01)):
+        //    keep the assertion-error matcher below and issue a bare call (no prank).
+        //  - GRIEFING branch (universal DoS: a require/revert that fails for EVERY caller):
+        //    a require failure raises Error(string), NOT Panic(0x01), so use a generic
+        //    `vm.expectRevert()` instead, and drive the call from a fuzzed/symbolic `caller`
+        //    via `vm.prank(caller)` in the Action phase. Under Kontrol a symbolic caller
+        //    witnesses the revert for every caller (the universal DoS).
+        // PANIC branch (default) - confirms the contract reverts with Panic(0x01) (Assert Failed):
         vm.expectRevert(stdError.assertionError);
+        // GRIEFING branch (alternative): vm.expectRevert();
 
         // ──────────────────────────────────────────────────────── [/Check]
 
@@ -103,6 +113,9 @@ contract TestAssertFailureTemplate is Test {
 
         // [LLM_INSTRUCTION]: Call the function. 
         // If you added parameters to the test signature, pass them here.
+        // _contractUnderTest.notGonnaExecute(fuzzArg);
+        // GRIEFING variant: prepend vm.prank(caller) so the call runs as the fuzzed/symbolic caller.
+        // vm.prank(caller);
         // _contractUnderTest.notGonnaExecute(fuzzArg);
 
         // ─────────────────────────────────────────────────────── [/Action]

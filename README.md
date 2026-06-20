@@ -132,7 +132,7 @@ Contains the Foundry/Kontrol test templates used for generating tests.
 ### Specifications Directory
 Contains the formal specifications and defect definitions for each vulnerability class.
 
-* **`Specifications/`**: PDF documents detailing the specifications (e.g., `Reentrancy.pdf`, `Division by Zero.pdf`) and a table containing all specification primitives (`Specification Primitives.pdf`).
+* **`Specifications/`**: Markdown documents detailing the formal specifications and defect definitions for each vulnerability class (e.g., `Reentrancy.md`, `Division by Zero.md`).
 
 Each specification document follows a structured format regarding the defect:
 *   **Defect Definition**: A high-level textual description of the vulnerability.
